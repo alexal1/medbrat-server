@@ -1,4 +1,4 @@
-package main
+package network
 
 import (
 	"bytes"
@@ -95,7 +95,12 @@ func (c *Client) writePump() {
 			if err != nil {
 				return
 			}
-			w.Write(message)
+
+			if response, err := handle(message); err != nil {
+				log.Println(err)
+			} else {
+				w.Write(response)
+			}
 
 			// Add queued chat messages to the current websocket message.
 			n := len(c.send)

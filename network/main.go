@@ -1,4 +1,4 @@
-package main
+package network
 
 import (
 	"flag"
@@ -21,7 +21,7 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "network/static/home.html")
 }
 
-func main() {
+func Main() {
 	flag.Parse()
 	hub := newHub()
 	go hub.run()
