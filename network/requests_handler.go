@@ -8,6 +8,11 @@ import (
 	"time"
 )
 
+type responseStruct struct {
+	Name string      `json:"name"`
+	Body interface{} `json:"body"`
+}
+
 // Handle message from client
 func handle(message []byte) (response []byte, err error) {
 	var jsonCommand map[string]interface{}
@@ -28,12 +33,16 @@ func handle(message []byte) (response []byte, err error) {
 }
 
 func handleStart() (response []byte, err error) {
-	if token, err := generateToken(); err != nil {
+	type startBody struct {
+		Token string `json:"token"`
+	}
+
+	if newToken, err := generateToken(); err != nil {
 		return []byte{}, err
 	} else {
-		res := map[string]string{"token": token}
+		res := responseStruct{Name: "new_session", Body: startBody{Token: newToken}}
 		jsonResponse, _ := json.Marshal(res)
-		return []byte(jsonResponse), nil
+		return jsonResponse, nil
 	}
 }
 
