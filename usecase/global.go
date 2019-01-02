@@ -14,6 +14,7 @@ type GlobalUseCase interface {
 type global struct {
 	currentMessage *Message
 	hello          *HelloUseCase
+	vision         *VisionUseCase
 }
 
 var lastMessageId uint64 = 0
@@ -23,10 +24,12 @@ func NextMessageId() uint64 {
 }
 
 func NewGlobal() GlobalUseCase {
-	hello := NewHello()
+	vision := NewVision()
+	hello := NewHello(vision.Start)
 	return &global{
 		hello.GetFirstMessage(),
 		&hello,
+		&vision,
 	}
 }
 
@@ -36,7 +39,7 @@ func (g *global) Start() (messages []*Message) {
 }
 
 func (g *global) Answer(value interface{}) (messages []*Message) {
-	nextMessage := g.currentMessage.NextMessageByCondition[value]
+	nextMessage := g.currentMessage.NextMessageByValue(value)
 	messages, g.currentMessage = zipMessages(nextMessage)
 	return
 }

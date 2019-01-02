@@ -1,11 +1,11 @@
 package usecase
 
 type Message struct {
-	Id                     uint64 `json:"id"`
-	Text                   string `json:"text"`
-	AnswerFormat           `json:"answer_format"`
-	NextMessage            *Message                 `json:"-"`
-	NextMessageByCondition map[interface{}]*Message `json:"-"`
+	Id                 uint64 `json:"id"`
+	Text               string `json:"text"`
+	AnswerFormat       `json:"answer_format"`
+	NextMessage        *Message                                       `json:"-"`
+	NextMessageByValue func(value interface{}) (nextMessage *Message) `json:"-"`
 }
 
 type AnswerFormat string

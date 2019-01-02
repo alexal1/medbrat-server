@@ -12,7 +12,7 @@ type hello struct {
 	firstMessage *Message
 }
 
-func NewHello() HelloUseCase {
+func NewHello(startVision func(imageBase64 string) (nextMessage *Message)) HelloUseCase {
 	msgHello1 := Message{
 		Id:           NextMessageId(),
 		Text:         "Добрый день!",
@@ -52,9 +52,18 @@ func NewHello() HelloUseCase {
 	msgHello1.NextMessage = &msgHello2
 	msgHello2.NextMessage = &msgHello3
 	msgHello3.NextMessage = &msgHello4
-	msgHello4.NextMessageByCondition = map[interface{}]*Message{
-		AnswerYes: &msgHello5,
-		AnswerNo:  &msgHello6,
+	msgHello4.NextMessageByValue = func(value interface{}) (nextMessage *Message) {
+		switch value {
+		case AnswerYes:
+			nextMessage = &msgHello5
+		case AnswerNo:
+			nextMessage = &msgHello6
+		}
+		return
+	}
+	msgHello5.NextMessageByValue = func(value interface{}) (nextMessage *Message) {
+		stringValue := value.(string)
+		return startVision(stringValue)
 	}
 
 	return &hello{
