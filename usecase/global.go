@@ -6,6 +6,7 @@ import "sync/atomic"
 
 type GlobalUseCase interface {
 	Start() (messages []*Message)
+	Answer(value interface{}) (messages []*Message)
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -31,6 +32,12 @@ func NewGlobal() GlobalUseCase {
 
 func (g *global) Start() (messages []*Message) {
 	messages, g.currentMessage = zipMessages((*g.hello).GetFirstMessage())
+	return
+}
+
+func (g *global) Answer(value interface{}) (messages []*Message) {
+	nextMessage := g.currentMessage.NextMessageByCondition[value]
+	messages, g.currentMessage = zipMessages(nextMessage)
 	return
 }
 

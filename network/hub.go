@@ -74,7 +74,16 @@ func (h *Hub) run() {
 				response = append(response, jsonMessages...)
 
 			case command == "answer":
-				log.Println("Answer!" + token + body.(string))
+				_, value, err := parseAnswer(body)
+				if err != nil {
+					log.Println(err)
+					break
+				}
+
+				currentUsecase := *h.usecases[token]
+				nextMessages := currentUsecase.Answer(value)
+
+				response = createMessagesJson(nextMessages)
 			}
 
 			packet.client.send <- response

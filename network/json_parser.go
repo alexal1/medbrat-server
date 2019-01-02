@@ -11,10 +11,10 @@ type responseStruct struct {
 	Body interface{} `json:"body"`
 }
 
-func parseCommand(content []byte) (commandName string, token string, body interface{}, err error) {
+func parseCommand(content []byte) (commandName string, token string, body map[string]interface{}, err error) {
 	var jsonCommand map[string]interface{}
 	if jsonErr := json.Unmarshal(content, &jsonCommand); jsonErr != nil {
-		err = errors.New("Cannot parse JSON command: " + string(content))
+		err = errors.New("cannot parse JSON command: " + string(content))
 		return
 	}
 
@@ -22,7 +22,7 @@ func parseCommand(content []byte) (commandName string, token string, body interf
 
 	commandName, ok = jsonCommand["name"].(string)
 	if ok == false {
-		err = errors.New("Incorrect JSON: " + string(content))
+		err = errors.New("incorrect JSON: " + string(content))
 		return
 	}
 
@@ -31,8 +31,28 @@ func parseCommand(content []byte) (commandName string, token string, body interf
 		return
 	}
 
-	body, ok = jsonCommand["body"]
+	body, ok = jsonCommand["body"].(map[string]interface{})
 	if ok == false {
+		return
+	}
+
+	return
+}
+
+func parseAnswer(body map[string]interface{}) (toId uint64, value interface{}, err error) {
+	var ok bool
+
+	toIdFloat, ok := body["to"].(float64)
+	if ok == false {
+		err = errors.New("cannot parse answer body key \"to\"")
+		return
+	} else {
+		toId = uint64(toIdFloat)
+	}
+
+	value, ok = body["value"]
+	if ok == false {
+		err = errors.New("cannot parse answer body key \"value\"")
 		return
 	}
 
