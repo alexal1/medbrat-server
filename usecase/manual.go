@@ -2,25 +2,23 @@ package usecase
 
 // -------------------------------------------------- INTERFACE --------------------------------------------------------
 
-type VisionUseCase interface {
-	Start(imageBase64 *string) *Message
+type ManualUseCase interface {
+	Start() *Message
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-type vision struct {
+type manual struct {
 	firstMessage *Message
 	blood        *map[BloodComponent]float32
-	ocr          *OCR
 }
 
-func NewVision(blood *map[BloodComponent]float32, ocr *OCR) VisionUseCase {
-	return &vision{
+func NewManual(blood *map[BloodComponent]float32) ManualUseCase {
+	return &manual{
 		blood: blood,
-		ocr:   ocr,
 	}
 }
 
-func (v *vision) Start(imageBase64 *string) *Message {
+func (v *manual) Start() *Message {
 	panic("implement me")
 }

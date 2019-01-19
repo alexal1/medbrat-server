@@ -66,7 +66,7 @@ func (h *Hub) run() {
 				response = createNewSessionJson(token)
 				response = append(response, newline...)
 
-				newUsecase := usecase.NewGlobal()
+				newUsecase := usecase.NewGlobal(&ocrInstance)
 				h.usecases[token] = &newUsecase
 				startMessages := newUsecase.Start()
 

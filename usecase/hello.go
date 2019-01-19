@@ -12,7 +12,7 @@ type hello struct {
 	firstMessage *Message
 }
 
-func NewHello(startVision func(imageBase64 string) (nextMessage *Message)) HelloUseCase {
+func NewHello(startVision func(imageBase64 *string) (nextMessage *Message), startManual func() (nextMessage *Message)) HelloUseCase {
 	msgHello1 := Message{
 		Id:           NextMessageId(),
 		Text:         "Добрый день!",
@@ -45,13 +45,14 @@ func NewHello(startVision func(imageBase64 string) (nextMessage *Message)) Hello
 
 	msgHello6 := Message{
 		Id:           NextMessageId(),
-		Text:         "Пидора ответ",
+		Text:         "Тогда придется внести все значения вручную",
 		AnswerFormat: None,
 	}
 
 	msgHello1.NextMessage = &msgHello2
 	msgHello2.NextMessage = &msgHello3
 	msgHello3.NextMessage = &msgHello4
+
 	msgHello4.NextMessageByValue = func(value interface{}) (nextMessage *Message) {
 		switch value {
 		case AnswerYes:
@@ -61,10 +62,13 @@ func NewHello(startVision func(imageBase64 string) (nextMessage *Message)) Hello
 		}
 		return
 	}
+
 	msgHello5.NextMessageByValue = func(value interface{}) (nextMessage *Message) {
 		stringValue := value.(string)
-		return startVision(stringValue)
+		return startVision(&stringValue)
 	}
+
+	msgHello6.NextMessage = startManual()
 
 	return &hello{
 		&msgHello1,

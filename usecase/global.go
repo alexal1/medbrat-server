@@ -1,6 +1,8 @@
 package usecase
 
-import "sync/atomic"
+import (
+	"sync/atomic"
+)
 
 // -------------------------------------------------- INTERFACE --------------------------------------------------------
 
@@ -9,12 +11,18 @@ type GlobalUseCase interface {
 	Answer(value interface{}) (messages []*Message)
 }
 
+type OCR interface {
+	RecognizeGeneralBloodTest(image *string) (blood *map[BloodComponent]float32)
+}
+
 // ---------------------------------------------------------------------------------------------------------------------
 
 type global struct {
 	currentMessage *Message
 	hello          *HelloUseCase
 	vision         *VisionUseCase
+	manual         *ManualUseCase
+	blood          *map[BloodComponent]float32
 }
 
 var lastMessageId uint64 = 0
@@ -23,13 +31,17 @@ func NextMessageId() uint64 {
 	return atomic.AddUint64(&lastMessageId, 1)
 }
 
-func NewGlobal() GlobalUseCase {
-	vision := NewVision()
-	hello := NewHello(vision.Start)
+func NewGlobal(ocr *OCR) GlobalUseCase {
+	blood := make(map[BloodComponent]float32)
+	vision := NewVision(&blood, ocr)
+	manual := NewManual(&blood)
+	hello := NewHello(vision.Start, manual.Start)
 	return &global{
 		hello.GetFirstMessage(),
 		&hello,
 		&vision,
+		&manual,
+		&blood,
 	}
 }
 
