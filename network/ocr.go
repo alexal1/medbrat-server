@@ -3,20 +3,27 @@ package network
 import (
 	"bytes"
 	"encoding/base64"
+	"github.com/schollz/closestmatch"
+	"github.com/schollz/closestmatch/levenshtein"
 	"image/jpeg"
 	"io/ioutil"
 	"log"
 	"medbrat-server/usecase"
+	"medbrat-server/utils"
 	"mime/multipart"
 	"net/http"
+	"regexp"
+	"strconv"
+	"strings"
 	"time"
 )
 
 type ocrSpace struct {
-	url          string
-	method       string
-	apikey       string
-	maxImageSize int
+	url                 string
+	method              string
+	apikey              string
+	maxImageSize        int
+	maxCorrectionsCount int
 }
 
 func NewOCR() usecase.OCR {
@@ -25,11 +32,27 @@ func NewOCR() usecase.OCR {
 		"POST",
 		"b19cd740b088957",
 		1024 * 1024,
+		4,
 	}
 }
 
 func (ocr *ocrSpace) RecognizeGeneralBloodTest(image *string) (blood *map[usecase.BloodComponent]float32) {
-	base64Image := "data:image/jpg;base64," + *compressImage(image, ocr.maxImageSize)
+	compressedImage := compressImage(image, ocr.maxImageSize)
+	ocrResponse := ocr.sendRequest(compressedImage)
+	log.Println(string(*ocrResponse))
+	text, _ := parseOCRServiceResponse(ocrResponse)
+	blood = parseBlood(text, ocr.maxCorrectionsCount)
+
+	usecase.ForEachBloodComponent(func(component usecase.BloodComponent) {
+		log.Println(component.Name() + ": ")
+		log.Printf("%f", (*blood)[component])
+	})
+	return
+}
+
+// Send request to OCR server
+func (ocr *ocrSpace) sendRequest(image *string) (response *[]byte) {
+	base64Image := "data:image/jpg;base64," + *image
 
 	payload := &bytes.Buffer{}
 	writer := multipart.NewWriter(payload)
@@ -81,9 +104,7 @@ func (ocr *ocrSpace) RecognizeGeneralBloodTest(image *string) (blood *map[usecas
 		return
 	}
 
-	log.Println(string(body))
-
-	return
+	return &body
 }
 
 // Compress given image to the given size in bytes.
@@ -136,4 +157,34 @@ func compressImage(imageString *string, size int) *string {
 	imageStringResult := base64.StdEncoding.EncodeToString(*compressedImageBytes)
 
 	return &imageStringResult
+}
+
+func parseBlood(text *string, maxCorrectionsCount int) (blood *map[usecase.BloodComponent]float32) {
+	result := make(map[usecase.BloodComponent]float32)
+
+	lines := strings.Split(*text, "\n")
+
+	cm := closestmatch.New(lines, []int{8})
+	usecase.ForEachBloodComponent(func(component usecase.BloodComponent) {
+		name := component.Name()
+		closestLine := cm.Closest(name)
+
+		levensteinDistance := levenshtein.LevenshteinDistance(&name, &closestLine)
+		if levensteinDistance-utils.Abs(len(closestLine)-len(name)) > maxCorrectionsCount {
+			result[component] = -1
+			return
+		}
+
+		r := regexp.MustCompile("\\D*([0-9]*[.]?[0-9]+)")
+		valueStringArray := r.FindStringSubmatch(closestLine)
+		if len(valueStringArray) < 2 {
+			result[component] = -1
+			return
+		}
+		valueString := valueStringArray[1]
+		valueFloat, _ := strconv.ParseFloat(valueString, 32)
+		result[component] = float32(valueFloat)
+	})
+
+	return &result
 }
