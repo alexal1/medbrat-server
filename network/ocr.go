@@ -3,8 +3,6 @@ package network
 import (
 	"bytes"
 	"encoding/base64"
-	"github.com/schollz/closestmatch"
-	"github.com/schollz/closestmatch/levenshtein"
 	"image/jpeg"
 	"io/ioutil"
 	"log"
@@ -32,21 +30,21 @@ func NewOCR() usecase.OCR {
 		"POST",
 		"b19cd740b088957",
 		1024 * 1024,
-		4,
+		2,
 	}
 }
 
-func (ocr *ocrSpace) RecognizeGeneralBloodTest(image *string) (blood *map[usecase.BloodComponent]float32) {
+func (ocr *ocrSpace) RecognizeGeneralBloodTest(blood *usecase.BloodGeneral, image *string) {
 	compressedImage := compressImage(image, ocr.maxImageSize)
 	ocrResponse := ocr.sendRequest(compressedImage)
-	log.Println(string(*ocrResponse))
-	text, _ := parseOCRServiceResponse(ocrResponse)
-	blood = parseBlood(text, ocr.maxCorrectionsCount)
 
-	usecase.ForEachBloodComponent(func(component usecase.BloodComponent) {
-		log.Println(component.Name() + ": ")
-		log.Printf("%f", (*blood)[component])
-	})
+	text, err := parseOCRServiceResponse(ocrResponse)
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+
+	ParseBlood(blood, text, ocr.maxCorrectionsCount)
 	return
 }
 
@@ -69,7 +67,7 @@ func (ocr *ocrSpace) sendRequest(image *string) (response *[]byte) {
 	}
 
 	client := &http.Client{
-		Timeout: time.Duration(30 * time.Second),
+		Timeout: time.Duration(60 * time.Second),
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
@@ -159,32 +157,42 @@ func compressImage(imageString *string, size int) *string {
 	return &imageStringResult
 }
 
-func parseBlood(text *string, maxCorrectionsCount int) (blood *map[usecase.BloodComponent]float32) {
-	result := make(map[usecase.BloodComponent]float32)
-
+func ParseBlood(blood *usecase.BloodGeneral, text *string, maxCorrectionsCount int) {
+	r := regexp.MustCompile("\\D*([0-9]*[.]?[0-9]+)")
 	lines := strings.Split(*text, "\n")
 
-	cm := closestmatch.New(lines, []int{8})
-	usecase.ForEachBloodComponent(func(component usecase.BloodComponent) {
-		name := component.Name()
-		closestLine := cm.Closest(name)
-
-		levensteinDistance := levenshtein.LevenshteinDistance(&name, &closestLine)
-		if levensteinDistance-utils.Abs(len(closestLine)-len(name)) > maxCorrectionsCount {
-			result[component] = -1
-			return
+	getComponentClosestLine := func(name string) *string {
+		keys := (*blood).GetTextKeys(name)
+		for _, key := range keys {
+			for _, line := range lines {
+				wordsCount := len(strings.Split(key, " "))
+				sample := utils.GetFirstNWords(line, wordsCount)
+				distance := usecase.LevenshteinDistance(&sample, &key)
+				if distance <= maxCorrectionsCount {
+					return &line
+				}
+			}
 		}
+		return nil
+	}
 
-		r := regexp.MustCompile("\\D*([0-9]*[.]?[0-9]+)")
-		valueStringArray := r.FindStringSubmatch(closestLine)
+	getFirstNumberValueFromString := func(s string) *float64 {
+		valueStringArray := r.FindStringSubmatch(s)
 		if len(valueStringArray) < 2 {
-			result[component] = -1
-			return
+			return nil
 		}
 		valueString := valueStringArray[1]
-		valueFloat, _ := strconv.ParseFloat(valueString, 32)
-		result[component] = float32(valueFloat)
-	})
+		valueFloat, _ := strconv.ParseFloat(valueString, 64)
+		return &valueFloat
+	}
 
-	return &result
+	(*blood).ForEach(func(index int, name string) {
+		(*blood).Set(name, -1)
+
+		if closestLine := getComponentClosestLine(name); closestLine != nil {
+			if value := getFirstNumberValueFromString(*closestLine); value != nil {
+				(*blood).Set(name, *value)
+			}
+		}
+	})
 }

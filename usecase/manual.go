@@ -10,10 +10,10 @@ type ManualUseCase interface {
 
 type manual struct {
 	firstMessage *Message
-	blood        *map[BloodComponent]float32
+	blood        *BloodGeneral
 }
 
-func NewManual(blood *map[BloodComponent]float32) ManualUseCase {
+func NewManual(blood *BloodGeneral) ManualUseCase {
 	return &manual{
 		blood: blood,
 	}

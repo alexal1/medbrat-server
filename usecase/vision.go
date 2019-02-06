@@ -10,11 +10,11 @@ type VisionUseCase interface {
 
 type vision struct {
 	firstMessage *Message
-	blood        *map[BloodComponent]float32
+	blood        *BloodGeneral
 	ocr          *OCR
 }
 
-func NewVision(blood *map[BloodComponent]float32, ocr *OCR) VisionUseCase {
+func NewVision(blood *BloodGeneral, ocr *OCR) VisionUseCase {
 	return &vision{
 		blood: blood,
 		ocr:   ocr,

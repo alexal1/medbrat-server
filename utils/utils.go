@@ -1,8 +1,21 @@
 package utils
 
-func Abs(x int) int {
-	if x < 0 {
-		return -x
+import (
+	"regexp"
+	"strings"
+)
+
+var splitRegexp = regexp.MustCompile("\\s+")
+
+func Min(a int, b int) int {
+	if b < a {
+		return b
 	}
-	return x
+	return a
+}
+
+func GetFirstNWords(s string, N int) string {
+	wordsSlice := splitRegexp.Split(s, N+1)
+	count := Min(N, len(wordsSlice))
+	return strings.Join(wordsSlice[:count], " ")
 }

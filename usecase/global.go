@@ -12,7 +12,7 @@ type GlobalUseCase interface {
 }
 
 type OCR interface {
-	RecognizeGeneralBloodTest(image *string) (blood *map[BloodComponent]float32)
+	RecognizeGeneralBloodTest(blood *BloodGeneral, image *string)
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -22,7 +22,7 @@ type global struct {
 	hello          *HelloUseCase
 	vision         *VisionUseCase
 	manual         *ManualUseCase
-	blood          *map[BloodComponent]float32
+	blood          *BloodGeneral
 }
 
 var lastMessageId uint64 = 0
@@ -32,7 +32,7 @@ func NextMessageId() uint64 {
 }
 
 func NewGlobal(ocr *OCR) GlobalUseCase {
-	blood := make(map[BloodComponent]float32)
+	blood := NewBloodGeneral()
 	vision := NewVision(&blood, ocr)
 	manual := NewManual(&blood)
 	hello := NewHello(vision.Start, manual.Start)
