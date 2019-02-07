@@ -1,4 +1,4 @@
-package usecase
+package utils
 
 func LevenshteinDistance(a, b *string) int {
 	charsA := []rune(*a)

@@ -167,7 +167,7 @@ func ParseBlood(blood *usecase.BloodGeneral, text *string, maxCorrectionsCount i
 			for _, line := range lines {
 				wordsCount := len(strings.Split(key, " "))
 				sample := utils.GetFirstNWords(line, wordsCount)
-				distance := usecase.LevenshteinDistance(&sample, &key)
+				distance := utils.LevenshteinDistance(&sample, &key)
 				if distance <= maxCorrectionsCount {
 					return &line
 				}
