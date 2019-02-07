@@ -1,13 +1,14 @@
-package network
+package websocket
 
 import (
 	"flag"
 	"log"
+	"medbrat-server/network/ocr"
 	"net/http"
 )
 
 var addr = flag.String("addr", ":8080", "http service address")
-var ocrInstance = NewOCR()
+var ocrInstance = ocr.NewOCR()
 
 func serveHome(w http.ResponseWriter, r *http.Request) {
 	log.Println(r.URL)
