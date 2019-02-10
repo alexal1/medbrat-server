@@ -18,23 +18,17 @@ type BloodGeneral interface {
 type Message struct {
 	Id                 uint64 `json:"id"`
 	Text               string `json:"text"`
-	AnswerFormat       `json:"answer_format"`
+	PossibleAnswers    []Answer
 	NextMessage        *Message                                       `json:"-"`
 	NextMessageByValue func(value interface{}) (nextMessage *Message) `json:"-"`
 }
 
-type AnswerFormat string
+type Answer string
 
 const (
-	YesNo  AnswerFormat = "yes_no"
-	Image  AnswerFormat = "image"
-	Number AnswerFormat = "number"
-	None   AnswerFormat = "none"
-	Ok     AnswerFormat = "ok"
+	Yes Answer = "yes"
+	No  Answer = "no"
 )
-
-const AnswerYes = "yes"
-const AnswerNo = "no"
 
 // ---------------------------------------------------------------------------------------------------------------------
 

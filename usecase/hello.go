@@ -14,39 +14,34 @@ type hello struct {
 
 func NewHello(startVision func(imageBase64 *string) (nextMessage *Message), startManual func() (nextMessage *Message)) HelloUseCase {
 	msgHello1 := Message{
-		Id:           NextMessageId(),
-		Text:         "Добрый день!",
-		AnswerFormat: None,
+		Id:   NextMessageId(),
+		Text: "Добрый день!",
 	}
 
 	msgHello2 := Message{
-		Id:           NextMessageId(),
-		Text:         "Я постараюсь помочь Вам провести диагностику Вашего здоровья",
-		AnswerFormat: None,
+		Id:   NextMessageId(),
+		Text: "Я постараюсь помочь Вам провести диагностику Вашего здоровья",
 	}
 
 	msgHello3 := Message{
-		Id:           NextMessageId(),
-		Text:         "Для начала работы мне нужно получить данные Вашего общего анализа крови",
-		AnswerFormat: None,
+		Id:   NextMessageId(),
+		Text: "Для начала работы мне необходимо получить данные Вашего общего анализа крови",
 	}
 
 	msgHello4 := Message{
-		Id:           NextMessageId(),
-		Text:         "Вы можете сфотографировать такой анализ и отправить мне фото?",
-		AnswerFormat: YesNo,
+		Id:              NextMessageId(),
+		Text:            "Вы можете сфотографировать такой анализ и отправить мне фото?",
+		PossibleAnswers: []Answer{Yes, No},
 	}
 
 	msgHello5 := Message{
-		Id:           NextMessageId(),
-		Text:         "Ок, постарайтесь держать камеру ровно над листом и сделайте фото",
-		AnswerFormat: Image,
+		Id:   NextMessageId(),
+		Text: "Ок, постарайтесь держать камеру ровно над листом и сделайте фото",
 	}
 
 	msgHello6 := Message{
-		Id:           NextMessageId(),
-		Text:         "Тогда придется внести все значения вручную",
-		AnswerFormat: None,
+		Id:   NextMessageId(),
+		Text: "Тогда придется внести все значения вручную",
 	}
 
 	msgHello1.NextMessage = &msgHello2
@@ -55,9 +50,9 @@ func NewHello(startVision func(imageBase64 *string) (nextMessage *Message), star
 
 	msgHello4.NextMessageByValue = func(value interface{}) (nextMessage *Message) {
 		switch value {
-		case AnswerYes:
+		case Yes:
 			nextMessage = &msgHello5
-		case AnswerNo:
+		case No:
 			nextMessage = &msgHello6
 		}
 		return

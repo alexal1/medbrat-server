@@ -42,7 +42,7 @@ func sendMessages(chat network.Chat, messages []*usecase.Message) {
 	for _, message := range messages {
 		switch chat.Source {
 		case network.Telegram:
-			telegramBot.SendMessage(chat, message.Text, message.AnswerFormat)
+			telegramBot.SendMessage(chat, message.Text, message.PossibleAnswers)
 			break
 
 		case network.Alice:

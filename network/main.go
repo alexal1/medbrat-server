@@ -9,7 +9,7 @@ type Network interface {
 		onNewChatStarted func(chat Chat),
 		onAnswerReceived func(chat Chat, answer interface{}),
 	) (err error)
-	SendMessage(chat Chat, message string, answerFormat usecase.AnswerFormat)
+	SendMessage(chat Chat, message string, possibleAnswers []usecase.Answer)
 }
 
 type Chat struct {

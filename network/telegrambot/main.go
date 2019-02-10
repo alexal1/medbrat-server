@@ -47,12 +47,22 @@ func (telegramBot *telegrambot) Run(onNewChatStarted func(chat network.Chat), on
 			Source: network.Telegram,
 		}
 
-		if message.Text == "/start" {
+		switch message.Text {
+		case "/start":
 			onNewChatStarted(chat)
-			continue
-		}
+			break
 
-		onAnswerReceived(chat, message.Text)
+		case "Да":
+			onAnswerReceived(chat, usecase.Yes)
+			break
+
+		case "Нет":
+			onAnswerReceived(chat, usecase.No)
+			break
+
+		default:
+			onAnswerReceived(chat, message.Text)
+		}
 
 		// TODO: handle image answers
 	}
@@ -60,7 +70,7 @@ func (telegramBot *telegrambot) Run(onNewChatStarted func(chat network.Chat), on
 	return nil
 }
 
-func (telegramBot *telegrambot) SendMessage(chat network.Chat, message string, answerFormat usecase.AnswerFormat) {
+func (telegramBot *telegrambot) SendMessage(chat network.Chat, message string, possibleAnswers []usecase.Answer) {
 	if chat.Source != network.Telegram {
 		log.Println("Attempt to send a non-Telegram message by Telegram Bot API")
 		return
@@ -69,10 +79,37 @@ func (telegramBot *telegrambot) SendMessage(chat network.Chat, message string, a
 	bot := telegramBot.bot
 
 	msg := tgbotapi.NewMessage(chat.Id, message)
+
+	if replyKeyboard := getReplyKeyboard(possibleAnswers); replyKeyboard != nil {
+		msg.ReplyMarkup = replyKeyboard
+	}
+
 	if _, err := bot.Send(msg); err != nil {
 		log.Println("Error when sending message by Telegram Bot API")
 		return
 	}
+}
 
-	// TODO: implement answer format
+func getReplyKeyboard(possibleAnswers []usecase.Answer) interface{} {
+	if len(possibleAnswers) == 0 {
+		return tgbotapi.NewRemoveKeyboard(false)
+	}
+
+	var buttons []tgbotapi.KeyboardButton
+	for _, answer := range possibleAnswers {
+		switch answer {
+		case usecase.Yes:
+			buttons = append(buttons, tgbotapi.NewKeyboardButton("Да"))
+			break
+
+		case usecase.No:
+			buttons = append(buttons, tgbotapi.NewKeyboardButton("Нет"))
+			break
+		}
+	}
+
+	keyboard := tgbotapi.NewReplyKeyboard(buttons)
+	keyboard.OneTimeKeyboard = true
+
+	return keyboard
 }
