@@ -20,5 +20,5 @@ func NewManual(blood *BloodGeneral) ManualUseCase {
 }
 
 func (v *manual) Start() *Message {
-	panic("implement me")
+	return nil
 }

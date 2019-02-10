@@ -21,19 +21,19 @@ func NewHello(startVision func(imageBase64 *string) (nextMessage *Message), star
 
 	msgHello2 := Message{
 		Id:           NextMessageId(),
-		Text:         "Меня зовут МедБрат, я помогу вам поставить диагноз",
+		Text:         "Я постараюсь помочь Вам провести диагностику Вашего здоровья",
 		AnswerFormat: None,
 	}
 
 	msgHello3 := Message{
 		Id:           NextMessageId(),
-		Text:         "Мне надо посмотреть на ваш общий анализ крови, а потом я задам вам несколько вопросов о самочувствии. Прямо как настоящий врач!",
+		Text:         "Для начала работы мне нужно получить данные Вашего общего анализа крови",
 		AnswerFormat: None,
 	}
 
 	msgHello4 := Message{
 		Id:           NextMessageId(),
-		Text:         "Вы можете сфотографировать общий анализ крови?",
+		Text:         "Вы можете сфотографировать такой анализ и отправить мне фото?",
 		AnswerFormat: YesNo,
 	}
 
