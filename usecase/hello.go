@@ -30,7 +30,7 @@ func NewHello(startVision func(imageBase64 *string) (nextMessage *Message), star
 
 	msgHello4 := Message{
 		Id:              NextMessageId(),
-		Text:            "Вы можете сфотографировать такой анализ и отправить мне фото?",
+		Text:            "Вы можете найти и сфотографировать такой анализ, а потом отправить сюда фото?",
 		PossibleAnswers: []Answer{Yes, No},
 	}
 
@@ -52,8 +52,10 @@ func NewHello(startVision func(imageBase64 *string) (nextMessage *Message), star
 		switch value {
 		case Yes:
 			nextMessage = &msgHello5
+			break
 		case No:
 			nextMessage = &msgHello6
+			break
 		}
 		return
 	}

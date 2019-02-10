@@ -50,13 +50,21 @@ func (g *global) Start() (messages []*Message) {
 	return
 }
 
-func (g *global) Answer(value interface{}) (messages []*Message) {
+func (g *global) Answer(value interface{}) []*Message {
 	nextMessage := g.currentMessage.NextMessageByValue(value)
-	messages, g.currentMessage = zipMessages(nextMessage)
-	return
+	if messages, newCurrentMessage := zipMessages(nextMessage); newCurrentMessage != nil {
+		g.currentMessage = newCurrentMessage
+		return messages
+	}
+	return nil
 }
 
 func zipMessages(startMessage *Message) (messages []*Message, lastMessage *Message) {
+	if startMessage == nil {
+		// Incorrect answer format, so we didn't find next message
+		return
+	}
+
 	lastMessage = startMessage
 	for {
 		messages = append(messages, lastMessage)
