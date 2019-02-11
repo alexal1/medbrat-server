@@ -26,8 +26,11 @@ type Message struct {
 type Answer string
 
 const (
-	Yes Answer = "yes"
-	No  Answer = "no"
+	Yes           Answer = "yes"
+	No            Answer = "no"
+	StartAgain    Answer = "start_again"
+	ChangedMyMind Answer = "changed_my_mind"
+	AllRight      Answer = "all_right"
 )
 
 // ---------------------------------------------------------------------------------------------------------------------

@@ -13,62 +13,119 @@ type hello struct {
 }
 
 func NewHello(startVision func(imageBase64 *string) (nextMessage *Message), startManual func() (nextMessage *Message)) HelloUseCase {
-	msgHello1 := Message{
-		Id:   NextMessageId(),
-		Text: "Добрый день!",
+	var msgStart1, msgStart2, msgStart3, msgStart4, msgStart5, msgNoBlood1, msgNoBlood2, msgVision1, msgManual1, msgManual2 Message
+
+	msgStart1 = Message{
+		Id:          NextMessageId(),
+		Text:        "Добрый день!",
+		NextMessage: &msgStart2,
 	}
 
-	msgHello2 := Message{
-		Id:   NextMessageId(),
-		Text: "Я постараюсь помочь Вам провести диагностику Вашего здоровья",
+	msgStart2 = Message{
+		Id:          NextMessageId(),
+		Text:        "Я постараюсь помочь Вам провести диагностику Вашего здоровья.",
+		NextMessage: &msgStart3,
 	}
 
-	msgHello3 := Message{
-		Id:   NextMessageId(),
-		Text: "Для начала работы мне необходимо получить данные Вашего общего анализа крови",
+	msgStart3 = Message{
+		Id:          NextMessageId(),
+		Text:        "Для начала работы мне необходимо изучить состав Вашей крови.",
+		NextMessage: &msgStart4,
 	}
 
-	msgHello4 := Message{
+	msgStart4 = Message{
 		Id:              NextMessageId(),
-		Text:            "Вы можете найти и сфотографировать такой анализ, а потом отправить сюда фото?",
+		Text:            "У Вас есть общий анализ крови, полученный в любой клинике или поликлинике?",
 		PossibleAnswers: []Answer{Yes, No},
+		NextMessageByValue: func(value interface{}) (nextMessage *Message) {
+			switch value {
+			case Yes:
+				nextMessage = &msgStart5
+				break
+			case No:
+				nextMessage = &msgNoBlood1
+				break
+			}
+			return
+		},
 	}
 
-	msgHello5 := Message{
-		Id:   NextMessageId(),
-		Text: "Ок, постарайтесь держать камеру ровно над листом и сделайте фото",
+	msgNoBlood1 = Message{
+		Id:              NextMessageId(),
+		Text:            "Тогда мне очень жаль, но в текущей версии я ничем не могу Вам помочь. Без анализа крови мне не хватит информации для исследования. Вы можете сдать анализы в ближайшем медицинском центре.",
+		PossibleAnswers: []Answer{StartAgain},
+		NextMessageByValue: func(value interface{}) (nextMessage *Message) {
+			switch value {
+			case StartAgain:
+				nextMessage = &msgNoBlood2
+				break
+			}
+			return
+		},
 	}
 
-	msgHello6 := Message{
-		Id:   NextMessageId(),
-		Text: "Тогда придется внести все значения вручную",
+	msgNoBlood2 = Message{
+		Id:          NextMessageId(),
+		Text:        "Добрый день ещё раз!",
+		NextMessage: &msgStart2,
 	}
 
-	msgHello1.NextMessage = &msgHello2
-	msgHello2.NextMessage = &msgHello3
-	msgHello3.NextMessage = &msgHello4
-
-	msgHello4.NextMessageByValue = func(value interface{}) (nextMessage *Message) {
-		switch value {
-		case Yes:
-			nextMessage = &msgHello5
-			break
-		case No:
-			nextMessage = &msgHello6
-			break
-		}
-		return
+	msgStart5 = Message{
+		Id:              NextMessageId(),
+		Text:            "Хорошо. Сможете сфотографировать и отправить мне этот анализ, чтобы я его распознал?",
+		PossibleAnswers: []Answer{Yes, No},
+		NextMessageByValue: func(value interface{}) (nextMessage *Message) {
+			switch value {
+			case Yes:
+				nextMessage = &msgVision1
+				break
+			case No:
+				nextMessage = &msgManual1
+				break
+			}
+			return
+		},
 	}
 
-	msgHello5.NextMessageByValue = func(value interface{}) (nextMessage *Message) {
-		stringValue := value.(string)
-		return startVision(&stringValue)
+	msgManual1 = Message{
+		Id:              NextMessageId(),
+		Text:            "Ладно, тогда давайте я пройдусь по всем пунктам анализа крови, и вы назовете соответствующие значения.",
+		PossibleAnswers: []Answer{AllRight, No},
+		NextMessageByValue: func(value interface{}) (nextMessage *Message) {
+			switch value {
+			case AllRight:
+				nextMessage = &msgManual2
+				break
+			case No:
+				nextMessage = &msgNoBlood1
+				break
+			}
+			return
+		},
 	}
 
-	msgHello6.NextMessage = startManual()
+	msgManual2 = Message{
+		Id:          NextMessageId(),
+		Text:        "Я буду называть строки анализа крови по одной. Вписывайте соответствующие значения, если они есть, или нажимайте \"Пропустить\".",
+		NextMessage: startManual(),
+	}
+
+	msgVision1 = Message{
+		Id:              NextMessageId(),
+		Text:            "Ок. Пришлите одной фотографией, постарайтесь чтобы слова и числа были хорошо различимы. Неправильно распознанные значения можно будет подкорректировать. Имейте в виду, что распознавание рукописного текста в текущей версии не поддерживается.",
+		PossibleAnswers: []Answer{ChangedMyMind},
+		NextMessageByValue: func(value interface{}) (nextMessage *Message) {
+			switch value {
+			case ChangedMyMind:
+				nextMessage = &msgManual1
+				break
+			}
+			return
+		},
+	}
 
 	return &hello{
-		&msgHello1,
+		&msgStart1,
 	}
 }
 

@@ -60,6 +60,18 @@ func (telegramBot *telegrambot) Run(onNewChatStarted func(chat network.Chat), on
 			onAnswerReceived(chat, usecase.No)
 			break
 
+		case "Начать сначала":
+			onAnswerReceived(chat, usecase.StartAgain)
+			break
+
+		case "Я передумал":
+			onAnswerReceived(chat, usecase.ChangedMyMind)
+			break
+
+		case "Хорошо":
+			onAnswerReceived(chat, usecase.AllRight)
+			break
+
 		default:
 			onAnswerReceived(chat, message.Text)
 		}
@@ -104,6 +116,18 @@ func getReplyKeyboard(possibleAnswers []usecase.Answer) interface{} {
 
 		case usecase.No:
 			buttons = append(buttons, tgbotapi.NewKeyboardButton("Нет"))
+			break
+
+		case usecase.StartAgain:
+			buttons = append(buttons, tgbotapi.NewKeyboardButton("Начать сначала"))
+			break
+
+		case usecase.ChangedMyMind:
+			buttons = append(buttons, tgbotapi.NewKeyboardButton("Я передумал"))
+			break
+
+		case usecase.AllRight:
+			buttons = append(buttons, tgbotapi.NewKeyboardButton("Хорошо"))
 			break
 		}
 	}

@@ -17,6 +17,8 @@ func main() {
 
 	if err := telegramBot.Run(onNewChatStarted, onAnswerReceived); err != nil {
 		log.Fatal("Cannot start Telegram Bot: ", err)
+	} else {
+		log.Println("Telegram Bot is running!")
 	}
 }
 
